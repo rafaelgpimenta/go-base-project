@@ -1,0 +1,4 @@
+docs/asyncapi/*
+!docs/asyncapi/*.yaml
+docs/openapi/*
+!docs/openapi/*.yaml

@@ -1,0 +1,155 @@
+asyncapi: 3.0.0
+info:
+  title: Sample Kafka API
+  version: 1.0.0
+  description: |-
+    The Sample API allows you to receive tenant updates and send resource
+    updates.
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+defaultContentType: application/json
+servers:
+  scram-connections:
+    host: test.mykafkacluster.org:18092
+    protocol: kafka-secure
+    description: Test broker secured with scramSha256
+    security:
+      - $ref: '#/components/securitySchemes/saslScram'
+    tags:
+      - name: env:test-scram
+        description: >-
+          This environment is meant for running internal tests through
+          scramSha256
+      - name: kind:remote
+        description: This server is a remote server. Not exposed by the application
+      - name: visibility:private
+        description: This resource is private and only available to certain users
+  mtls-connections:
+    host: test.mykafkacluster.org:28092
+    protocol: kafka-secure
+    description: Test broker secured with X509
+    security:
+      - $ref: '#/components/securitySchemes/certs'
+    tags:
+      - name: env:test-mtls
+        description: This environment is meant for running internal tests through mtls
+      - name: kind:remote
+        description: This server is a remote server. Not exposed by the application
+      - name: visibility:private
+        description: This resource is private and only available to certain users
+channels:
+  tenantUpdated:
+    address: queuing.tenant.updates
+    messages:
+      update:
+        $ref: '#/components/messages/tenantUpdated'
+    description: The topic on which tenant updates may be produced and consumed.
+  resourceUpdated:
+    address: queuing.resource.updates
+    messages:
+      update:
+        $ref: '#/components/messages/resourceUpdated'
+    description: The topic on which resource updates may be produced and consumed.
+operations:
+  receiveTenantUpdate:
+    action: receive
+    channel:
+      $ref: '#/channels/tenantUpdated'
+    summary: >-
+      Inform about updates of a particular tenant.
+    traits:
+      - $ref: '#/components/operationTraits/kafka'
+    messages:
+      - $ref: '#/channels/tenantUpdated/messages/update'
+  sendResourceUpdate:
+    action: send
+    channel:
+      $ref: '#/channels/resourceUpdated'
+    summary: >-
+      Inform about updates of a particular tenant.
+    traits:
+      - $ref: '#/components/operationTraits/kafka'
+    messages:
+      - $ref: '#/channels/resourceUpdated/messages/update'
+components:
+  messages:
+    resourceUpdated:
+      name: resourceUpdated
+      title: Resource updated
+      summary: >-
+        Inform about updates of a particular resource.
+      contentType: application/json
+      traits:
+        - $ref: '#/components/messageTraits/commonHeaders'
+      payload:
+        $ref: '#/components/schemas/resourceEventPayload'
+    tenantUpdated:
+      name: tenantUpdated
+      title: Tenant updated
+      summary: >-
+        Inform about updates of a particular tenant.
+      contentType: application/json
+      traits:
+        - $ref: '#/components/messageTraits/commonHeaders'
+      payload:
+        $ref: '#/components/schemas/tenantEventPayload'
+  schemas:
+    resourceEventPayload:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: The ID of the event.
+        timestamp:
+          type: string
+          format: date-time
+          description: The date and time when the event was generated.
+        type:
+          type: string
+          enum:
+            - 'on'
+            - 'off'
+          description: The type of the event.
+    tenantEventPayload:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: The ID of the event.
+        timestamp:
+          type: string
+          format: date-time
+          description: The date and time when the event was generated.
+        type:
+          type: string
+          enum:
+            - 'on'
+            - 'off'
+          description: The type of the event.
+  securitySchemes:
+    saslScram:
+      type: scramSha256
+      description: Provide your username and password for SASL/SCRAM authentication
+    certs:
+      type: X509
+      description: Download the certificate files from service provider
+  messageTraits:
+    commonHeaders:
+      headers:
+        type: object
+        properties:
+          my-app-header:
+            type: integer
+            minimum: 0
+            maximum: 100
+  operationTraits:
+    kafka:
+      bindings:
+        kafka:
+          clientId:
+            type: string
+            enum:
+              - my-app-id
