@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title id="title"></title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/1.0.2/css/bulma.min.css">
+</head>
+<body>
+  <section class="section">
+    <div class="container">
+      <h1 id="h1-title" class="title"></h1>
+      <div class="buttons">
+        <button class="button is-primary" onclick="location.href='openapi/index.html'">OpenAPI</button>
+        <button class="button is-info" onclick="location.href='asyncapi/index.html'">AsyncAPI</button>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    const titleElement = document.getElementById('title');
+    const h1TitleElement = document.getElementById('h1-title');
+
+    const language = navigator.language || navigator.languages[0];
+    const isPortuguese = language.startsWith('pt');
+
+    if (isPortuguese) {
+      titleElement.textContent = 'Selecione a documentação desejada';
+      h1TitleElement.textContent = 'Selecione a documentação desejada:';
+    } else {
+      titleElement.textContent = 'Select the desired documentation';
+      h1TitleElement.textContent = 'Select the desired documentation:';
+    }
+  </script>
+</body>
+</html>
