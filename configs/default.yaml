@@ -1,0 +1,5 @@
+test:
+  foo: ${FOO|bar}
+  fooInt: ${FOO_INT|1}
+  fooFloat: ${FOO_FLOAT|1.1}
+  fooBoolean: ${FOO_BOOLEAN|false}
