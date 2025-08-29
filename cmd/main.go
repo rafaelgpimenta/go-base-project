@@ -2,18 +2,22 @@ package main
 
 import (
 	"context"
-	"fmt"
 
 	"resource-management/internal/application"
+	"resource-management/internal/lib/logger"
+
+	"github.com/google/uuid"
 )
 
 func main() {
 	controller := application.NewController(nil)
+	traceId := uuid.New().String()
+	ctx := context.WithValue(context.Background(), "traceId", traceId)
 
-	count, err := controller.GetResourcesCount(context.Background())
+	count, err := controller.GetResourcesCount(ctx)
 	if err != nil {
-		fmt.Println("Something went wrong")
+		logger.Error().Ctx(ctx).Msg("Something went wrong when getting resources")
 		return
 	}
-	fmt.Printf("You have %d resources\n", count)
+	logger.Info().Ctx(ctx).Int32("count", count).Msg("Successfully found resources")
 }
