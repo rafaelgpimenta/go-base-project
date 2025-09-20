@@ -1,0 +1,66 @@
+version: '3.8'
+services:
+  kafka:
+    image: confluentinc/cp-kafka:8.0.0
+    container_name: kafka
+    hostname: kafka
+    ports:
+      - "9092:29092"   # PLAINTEXT
+      - "9096:29096"   # SASL_SSL
+    environment:
+      CLUSTER_ID: "4L6g3nShT-eMCtK--X86sw"
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_NODE_ID: 1
+      KAFKA_CONTROLLER_QUORUM_VOTERS: "1@kafka:9093"
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,PLAINTEXT_HOST://0.0.0.0:29092,SASL_SSL://0.0.0.0:9096,SASL_SSL_HOST://0.0.0.0:29096,CONTROLLER://0.0.0.0:9093
+
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092,SASL_SSL://kafka:9096,SASL_SSL_HOST://localhost:9096
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT,SASL_SSL:SASL_SSL,SASL_SSL_HOST:SASL_SSL,CONTROLLER:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+
+      # SCRAM
+      KAFKA_SASL_ENABLED_MECHANISMS: SCRAM-SHA-512
+      KAFKA_SASL_MECHANISM_INTER_BROKER_PROTOCOL: SCRAM-SHA-512
+
+      # SSL
+      KAFKA_SSL_KEYSTORE_FILENAME: kafka.keystore.jks
+      KAFKA_SSL_KEYSTORE_CREDENTIALS: keystore_creds
+      KAFKA_SSL_TRUSTSTORE_FILENAME: kafka.truststore.jks
+      KAFKA_SSL_TRUSTSTORE_CREDENTIALS: truststore_creds
+      KAFKA_SSL_KEY_CREDENTIALS: key_creds
+      KAFKA_SSL_CLIENT_AUTH: none
+
+      # JAAS
+      KAFKA_OPTS: "-Djava.security.auth.login.config=/etc/kafka/secrets/kafka_server_jaas.conf"
+
+    volumes:
+      - ./kafka/init-certs.sh:/init-certs.sh
+
+    entrypoint: ["/bin/bash", "-c", "/init-certs.sh && /etc/confluent/docker/run"]
+
+  kafka-init:
+    image: confluentinc/cp-kafka:8.0.0
+    depends_on:
+      - kafka
+    command:
+      - bash
+      - -c
+      - |
+        echo "⏳ waiting for Kafka to start..."
+        cub kafka-ready -b kafka:9092 1 30
+
+        echo "✅ creating SCRAM user..."
+        kafka-configs --bootstrap-server kafka:9092 \
+          --alter --add-config "SCRAM-SHA-512=[password=admin-secret]" \
+          --entity-type users --entity-name admin
+networks:
+  default:
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.66.47.0/24
+          gateway: 10.66.47.1
