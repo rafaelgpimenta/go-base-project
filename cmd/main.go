@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 
-	"resource-management/internal/application"
+	"resource-management/internal/application/controllers"
 	"resource-management/internal/domain/interfaces"
 	"resource-management/internal/lib/config"
 	"resource-management/internal/lib/logger"
@@ -12,7 +12,7 @@ import (
 )
 
 func main() {
-	controller := application.NewController(nil)
+	controller := controllers.NewResourceController(nil)
 	traceId := uuid.New().String()
 	ctx := context.WithValue(context.Background(), "traceId", traceId)
 	testConfig, _ := config.Get[interfaces.TestConfig]("test")
