@@ -1,45 +1,64 @@
 package logger
 
 import (
+	"context"
+	"log/slog"
 	"os"
 	"resource-management/internal/lib/tracinghook"
-
-	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
+	"runtime/debug"
 )
 
-var Logger zerolog.Logger
+var Logger *slog.Logger
+var TraceKey = tracinghook.TraceKey
 
 func init() {
-	Logger = zerolog.New(os.Stdout).With().
-		Timestamp().Logger().Hook(tracinghook.TracingHook{})
+	baseHandler := slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+		Level: slog.LevelInfo,
+	})
 
-	zerolog.SetGlobalLevel(zerolog.InfoLevel)
+	handler := &tracinghook.TracingHandler{Handler: baseHandler}
 
-	// Defined configured logger as default
-	log.Logger = Logger
+	Logger = slog.New(handler)
+
+	slog.SetDefault(Logger)
 }
 
-func Info() *zerolog.Event {
-	return Logger.Info()
+func Info(msg string, args ...any) {
+	Logger.Info(msg, args...)
 }
 
-func Warn() *zerolog.Event {
-	return Logger.Warn()
+func InfoCtx(ctx context.Context, msg string, args ...any) {
+	Logger.InfoContext(ctx, msg, args...)
 }
 
-func Error() *zerolog.Event {
-	return Logger.Error()
+func Error(msg string, err error, args ...any) {
+	if err != nil {
+		args = append(args, slog.Any("error", err))
+		args = append(args, slog.Any("stack", string(debug.Stack())))
+	}
+	Logger.Error(msg, args...)
 }
 
-func Debug() *zerolog.Event {
-	return Logger.Debug()
+func ErrorCtx(ctx context.Context, msg string, err error, args ...any) {
+	if err != nil {
+		args = append(args, slog.Any("error", err))
+		args = append(args, slog.Any("stack", string(debug.Stack())))
+	}
+	Logger.ErrorContext(ctx, msg, args...)
 }
 
-func Fatal() *zerolog.Event {
-	return Logger.Fatal()
+func Debug(msg string, args ...any) {
+	Logger.Debug(msg, args...)
 }
 
-func Panic() *zerolog.Event {
-	return Logger.Panic()
+func DebugCtx(ctx context.Context, msg string, args ...any) {
+	Logger.DebugContext(ctx, msg, args...)
+}
+
+func Warn(msg string, args ...any) {
+	Logger.Warn(msg, args...)
+}
+
+func WarnCtx(ctx context.Context, msg string, args ...any) {
+	Logger.WarnContext(ctx, msg, args...)
 }

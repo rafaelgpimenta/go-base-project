@@ -15,20 +15,20 @@ func main() {
 	// // === Load CA certificate ===
 	// caCert, err := os.ReadFile("scripts/local-dev-ca.crt")
 	// if err != nil {
-	//  logger.Panic().Ctx(ctx).Stack().Err(err).
-	//		Msg("Error reading CA certificate")
+	// 	logger.ErrorCtx(ctx, "Error reading CA certificate", err)
+	// 	panic("Error reading CA certificate: " + err.Error())
 	// }
 
 	// caPool := x509.NewCertPool()
 	// if !caPool.AppendCertsFromPEM(caCert) {
-	//  logger.Panic().Ctx(ctx).Stack().Err(err).
-	//		Msg("Fail to append CA certificate to pool")
+	// 	logger.ErrorCtx(ctx, "Fail to append CA certificate to pool", nil)
+	// 	panic("Fail to append CA certificate to pool")
 	// }
 
 	ADDRESS := "localhost:9096"
 	TOPIC := "test-ssl"
 	traceId := uuid.New().String()
-	ctx := context.WithValue(context.Background(), "traceId", traceId)
+	ctx := context.WithValue(context.Background(), logger.TraceKey, traceId)
 
 	tlsConfig := &tls.Config{
 		RootCAs: nil, // or caPool
@@ -37,8 +37,8 @@ func main() {
 	// === Config SASL/SCRAM with admin user ===
 	mechanism, err := scram.Mechanism(scram.SHA512, "admin", "admin-secret")
 	if err != nil {
-		logger.Panic().Ctx(ctx).Stack().Err(err).
-			Msg("Error creating SCRAM mechanism")
+		logger.ErrorCtx(ctx, "Error creating SCRAM mechanism", err)
+		panic("Error creating SCRAM mechanism: " + err.Error())
 	}
 
 	// === topic creation via auto.create ===
@@ -47,10 +47,10 @@ func main() {
 		TLS:           tlsConfig,
 		SASLMechanism: mechanism,
 	}
-	conn, err := dialer.DialLeader(context.Background(), "tcp", ADDRESS, TOPIC, 0)
+	conn, err := dialer.DialLeader(ctx, "tcp", ADDRESS, TOPIC, 0)
 	if err != nil {
-		logger.Panic().Ctx(ctx).Stack().Err(err).
-			Msg("Error creating/opening connection to topic")
+		logger.ErrorCtx(ctx, "Error creating/opening connection to topic", err)
+		panic("Error creating/opening connection to topic: " + err.Error())
 	}
 	_ = conn.Close()
 
@@ -66,16 +66,16 @@ func main() {
 	}
 	defer producer.Close()
 
-	logger.Info().Ctx(ctx).Msg("Producing message in SSL")
-	err = producer.WriteMessages(context.Background(),
+	logger.InfoCtx(ctx, "Producing message in SSL")
+	err = producer.WriteMessages(ctx,
 		kafka.Message{
 			Key:   []byte("key1"),
 			Value: []byte("Hello secure Kafka!"),
 		},
 	)
 	if err != nil {
-		logger.Panic().Ctx(ctx).Stack().Err(err).
-			Msg("Error producing message")
+		logger.ErrorCtx(ctx, "Error producing message", err)
+		panic("Error producing message: " + err.Error())
 	}
 
 	// === Consumer ===
@@ -87,13 +87,13 @@ func main() {
 	})
 	defer reader.Close()
 
-	logger.Info().Ctx(ctx).Msg("Consuming messages in SSL")
+	logger.InfoCtx(ctx, "Consuming messages in SSL")
 	msg, err := reader.ReadMessage(ctx)
 	if err != nil {
-		logger.Panic().Ctx(ctx).Stack().Err(err).
-			Msg("Error consuming message")
+		logger.ErrorCtx(ctx, "Error consuming message", err)
+		panic("Error consuming message: " + err.Error())
 	}
 
-	logger.Info().Ctx(ctx).Str("key", string(msg.Key)).
-		Str("value", string(msg.Value)).Msg("Received message in SSL")
+	logger.InfoCtx(ctx, "Received message in SSL",
+		"key", string(msg.Key), "value", string(msg.Value))
 }

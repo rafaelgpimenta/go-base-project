@@ -14,18 +14,15 @@ import (
 func main() {
 	controller := controllers.NewResourceController(nil)
 	traceId := uuid.New().String()
-	ctx := context.WithValue(context.Background(), "traceId", traceId)
+	ctx := context.WithValue(context.Background(), logger.TraceKey, traceId)
 	testConfig, _ := config.Get[interfaces.TestConfig]("test")
 
 	count, err := controller.GetResourcesCount(ctx)
 	if err != nil {
-		logger.Error().Ctx(ctx).Msg("Something went wrong when getting resources")
+		logger.ErrorCtx(ctx, "Something went wrong when getting resources", err)
 		return
 	}
-	logger.Info().Ctx(ctx).Int32("count", count).
-		Str("foo", testConfig.Foo).
-		Int32("fooInt", testConfig.FooInt).
-		Float64("fooFloat", testConfig.FooFloat).
-		Bool("fooBoolean", testConfig.FooBoolean).
-		Msg("Successfully found resources")
+	logger.InfoCtx(ctx, "Successfully found resources",
+		"count", count, "foo", testConfig.Foo, "fooInt", testConfig.FooInt,
+		"fooFloat", testConfig.FooFloat, "fooBoolean", testConfig.FooBoolean)
 }

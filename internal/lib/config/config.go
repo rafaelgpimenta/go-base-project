@@ -21,7 +21,7 @@ func init() {
 	// Load default config
 	err := config.LoadFiles(fmt.Sprintf("%s/default.yaml", CONFIG_DIR))
 	if err != nil {
-		logger.Fatal().Err(err).Msg("Error reading default config file")
+		logger.Error("Error reading default config file", err)
 	}
 
 	// Get current environment (e.g., development, production)
@@ -31,7 +31,7 @@ func init() {
 	if env != "" {
 		err := config.LoadFiles(fmt.Sprintf("%s/%s.yaml", CONFIG_DIR, env))
 		if err != nil {
-			logger.Warn().Str("env", env).Err(err).Msg("Error reading config file")
+			logger.Warn("Continuing with default config", "error", err, "env", env)
 		}
 	}
 }
