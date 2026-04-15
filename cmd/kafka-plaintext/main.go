@@ -22,7 +22,7 @@ func main() {
 	}
 	conn, err := dialer.DialLeader(ctx, "tcp", ADDRESS, TOPIC, 0)
 	if err != nil {
-		logger.ErrorCtx(ctx, "Error creating/opening connection to topic", err)
+		logger.ErrorContext(ctx, "Error creating/opening connection to topic", err)
 		panic("Error creating/opening connection to topic: " + err.Error())
 	}
 	_ = conn.Close()
@@ -35,7 +35,7 @@ func main() {
 	}
 	defer producer.Close()
 
-	logger.InfoCtx(ctx, "Producing message in PLAINTEXT")
+	logger.InfoContext(ctx, "Producing message in PLAINTEXT")
 	err = producer.WriteMessages(ctx,
 		kafka.Message{
 			Key:   []byte("key"),
@@ -43,7 +43,7 @@ func main() {
 		},
 	)
 	if err != nil {
-		logger.ErrorCtx(ctx, "Error producing message", err)
+		logger.ErrorContext(ctx, "Error producing message", err)
 		panic("Error  producing message: " + err.Error())
 	}
 
@@ -55,13 +55,13 @@ func main() {
 	})
 	defer reader.Close()
 
-	logger.InfoCtx(ctx, "Consuming messages in PLAINTEXT")
+	logger.InfoContext(ctx, "Consuming messages in PLAINTEXT")
 	msg, err := reader.ReadMessage(ctx)
 	if err != nil {
-		logger.ErrorCtx(ctx, "Error consuming message", err)
+		logger.ErrorContext(ctx, "Error consuming message", err)
 		panic("Error consuming message: " + err.Error())
 	}
 
-	logger.InfoCtx(ctx, "Received message in PLAINTEXT",
+	logger.InfoContext(ctx, "Received message in PLAINTEXT",
 		"key", string(msg.Key), "value", string(msg.Value))
 }

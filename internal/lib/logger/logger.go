@@ -27,7 +27,7 @@ func Info(msg string, args ...any) {
 	Logger.Info(msg, args...)
 }
 
-func InfoCtx(ctx context.Context, msg string, args ...any) {
+func InfoContext(ctx context.Context, msg string, args ...any) {
 	Logger.InfoContext(ctx, msg, args...)
 }
 
@@ -39,7 +39,7 @@ func Error(msg string, err error, args ...any) {
 	Logger.Error(msg, args...)
 }
 
-func ErrorCtx(ctx context.Context, msg string, err error, args ...any) {
+func ErrorContext(ctx context.Context, msg string, err error, args ...any) {
 	if err != nil {
 		args = append(args, slog.Any("error", err))
 		args = append(args, slog.Any("stack", string(debug.Stack())))
@@ -51,7 +51,7 @@ func Debug(msg string, args ...any) {
 	Logger.Debug(msg, args...)
 }
 
-func DebugCtx(ctx context.Context, msg string, args ...any) {
+func DebugContext(ctx context.Context, msg string, args ...any) {
 	Logger.DebugContext(ctx, msg, args...)
 }
 
@@ -59,6 +59,6 @@ func Warn(msg string, args ...any) {
 	Logger.Warn(msg, args...)
 }
 
-func WarnCtx(ctx context.Context, msg string, args ...any) {
+func WarnContext(ctx context.Context, msg string, args ...any) {
 	Logger.WarnContext(ctx, msg, args...)
 }

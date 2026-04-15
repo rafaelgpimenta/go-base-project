@@ -19,10 +19,10 @@ func main() {
 
 	count, err := controller.GetResourcesCount(ctx)
 	if err != nil {
-		logger.ErrorCtx(ctx, "Something went wrong when getting resources", err)
+		logger.ErrorContext(ctx, "Something went wrong when getting resources", err)
 		return
 	}
-	logger.InfoCtx(ctx, "Successfully found resources",
+	logger.InfoContext(ctx, "Successfully found resources",
 		"count", count, "foo", testConfig.Foo, "fooInt", testConfig.FooInt,
 		"fooFloat", testConfig.FooFloat, "fooBoolean", testConfig.FooBoolean)
 }

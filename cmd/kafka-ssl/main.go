@@ -15,13 +15,13 @@ func main() {
 	// // === Load CA certificate ===
 	// caCert, err := os.ReadFile("scripts/local-dev-ca.crt")
 	// if err != nil {
-	// 	logger.ErrorCtx(ctx, "Error reading CA certificate", err)
+	// 	logger.ErrorContext(ctx, "Error reading CA certificate", err)
 	// 	panic("Error reading CA certificate: " + err.Error())
 	// }
 
 	// caPool := x509.NewCertPool()
 	// if !caPool.AppendCertsFromPEM(caCert) {
-	// 	logger.ErrorCtx(ctx, "Fail to append CA certificate to pool", nil)
+	// 	logger.ErrorContext(ctx, "Fail to append CA certificate to pool", nil)
 	// 	panic("Fail to append CA certificate to pool")
 	// }
 
@@ -37,7 +37,7 @@ func main() {
 	// === Config SASL/SCRAM with admin user ===
 	mechanism, err := scram.Mechanism(scram.SHA512, "admin", "admin-secret")
 	if err != nil {
-		logger.ErrorCtx(ctx, "Error creating SCRAM mechanism", err)
+		logger.ErrorContext(ctx, "Error creating SCRAM mechanism", err)
 		panic("Error creating SCRAM mechanism: " + err.Error())
 	}
 
@@ -49,7 +49,7 @@ func main() {
 	}
 	conn, err := dialer.DialLeader(ctx, "tcp", ADDRESS, TOPIC, 0)
 	if err != nil {
-		logger.ErrorCtx(ctx, "Error creating/opening connection to topic", err)
+		logger.ErrorContext(ctx, "Error creating/opening connection to topic", err)
 		panic("Error creating/opening connection to topic: " + err.Error())
 	}
 	_ = conn.Close()
@@ -66,7 +66,7 @@ func main() {
 	}
 	defer producer.Close()
 
-	logger.InfoCtx(ctx, "Producing message in SSL")
+	logger.InfoContext(ctx, "Producing message in SSL")
 	err = producer.WriteMessages(ctx,
 		kafka.Message{
 			Key:   []byte("key1"),
@@ -74,7 +74,7 @@ func main() {
 		},
 	)
 	if err != nil {
-		logger.ErrorCtx(ctx, "Error producing message", err)
+		logger.ErrorContext(ctx, "Error producing message", err)
 		panic("Error producing message: " + err.Error())
 	}
 
@@ -87,13 +87,13 @@ func main() {
 	})
 	defer reader.Close()
 
-	logger.InfoCtx(ctx, "Consuming messages in SSL")
+	logger.InfoContext(ctx, "Consuming messages in SSL")
 	msg, err := reader.ReadMessage(ctx)
 	if err != nil {
-		logger.ErrorCtx(ctx, "Error consuming message", err)
+		logger.ErrorContext(ctx, "Error consuming message", err)
 		panic("Error consuming message: " + err.Error())
 	}
 
-	logger.InfoCtx(ctx, "Received message in SSL",
+	logger.InfoContext(ctx, "Received message in SSL",
 		"key", string(msg.Key), "value", string(msg.Value))
 }
